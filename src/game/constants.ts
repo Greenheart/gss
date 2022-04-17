@@ -8,6 +8,7 @@ export const WORLD_SIZE = 1000
 export const PLAYER = {
     DRAG: 0.99,
     MAX_SPEED: 180,
+    STARTING_AMMO: 50,
     MAX_ANGULAR_VELOCITY: 280,
     /**
      * Weapon cooldown time (ms)
@@ -21,6 +22,8 @@ export const PLAYER = {
      * Ensure rotation matches the player sprite
      */
     ROTATION_FIX: Math.PI / 2,
+    BULLET_SPEED: 500,
+    MAX_BULLETS: 30,
 }
 
 export const ALIEN = {

@@ -9,6 +9,7 @@ type KeyName = typeof KEYS[number]
 type GameState = {
     player: {
         nextFireTime: number
+        ammo: number
     }
     alienRate: number
     nextAlienSpawn: number
@@ -17,7 +18,8 @@ type GameState = {
 export class GoaSpaceSurvival extends Scene {
     player!: Types.Physics.Arcade.SpriteWithDynamicBody
     keys!: Record<KeyName, Input.Keyboard.Key>
-    aliens!: GameObjects.Group
+    aliens!: Physics.Arcade.Group
+    bullets!: Physics.Arcade.Group
 
     state: GameState
 
@@ -26,6 +28,7 @@ export class GoaSpaceSurvival extends Scene {
         this.state = {
             player: {
                 nextFireTime: 0,
+                ammo: PLAYER.STARTING_AMMO,
             },
             alienRate: ALIEN.STARTING_ALIEN_RATE,
             nextAlienSpawn: 0,
@@ -62,6 +65,7 @@ export class GoaSpaceSurvival extends Scene {
 
         this.player = this.createPlayer()
         this.aliens = this.createAliens()
+        this.bullets = this.createBullets()
 
         this.keys = this.input.keyboard.addKeys(
             'UP,LEFT,RIGHT,W,A,D,SPACE',
@@ -71,10 +75,11 @@ export class GoaSpaceSurvival extends Scene {
 
         // this.addMusic()
 
-        // this.cameras.main.setBounds(0, 0, WORLD_SIZE, WORLD_SIZE)
+        // TODO: Tile the background to cover full screen
         // this.add.tileSprite(0, 0, WORLD_SIZE, WORLD_SIZE, 'background')
 
         this.physics.add.collider(this.player, this.aliens)
+        this.physics.add.collider(this.aliens, this.aliens)
     }
 
     createPlayer() {
@@ -113,9 +118,12 @@ export class GoaSpaceSurvival extends Scene {
             maxSize: ALIEN.MAX_SPAWNED,
             setScale: { x: 1.8, y: 1.8 },
             setOrigin: { x: 0.5, y: 0.8 },
+            // TODO: improve hitbox for aliens, make them a bit smaller
             active: false,
             visible: false,
             frameQuantity: ALIEN.MAX_SPAWNED,
+            bounceX: 1,
+            bounceY: 1,
         })
 
         this.anims.create({
@@ -126,6 +134,21 @@ export class GoaSpaceSurvival extends Scene {
         })
 
         return aliens
+    }
+
+    createBullets() {
+        const bullets = this.physics.add.group({
+            key: 'bullets',
+            frameQuantity: PLAYER.MAX_BULLETS,
+            collideWorldBounds: true,
+            setScale: { x: 0.3, y: 0.3 },
+            maxSize: PLAYER.MAX_BULLETS,
+            frame: 0,
+            active: false,
+            visible: false,
+        })
+
+        return bullets
     }
 
     spawnAlien() {
@@ -174,6 +197,34 @@ export class GoaSpaceSurvival extends Scene {
         }
     }
 
+    fire() {
+        if (this.state.player.ammo) {
+            const bullet = this.bullets.getFirstDead(
+                false,
+                this.player.x,
+                this.player.y,
+            ) as Physics.Arcade.Image
+
+            if (bullet) {
+                bullet.setActive(true)
+                bullet.setVisible(true)
+
+                this.physics.velocityFromRotation(
+                    this.player.rotation + PLAYER.ROTATION_FIX,
+                    PLAYER.BULLET_SPEED,
+                    bullet.body.velocity,
+                )
+
+                killWhenOutOfBounds(bullet)
+
+                this.bullets.add(bullet)
+
+                this.sound.play('shoot', { volume: 0.05 })
+                this.state.player.ammo--
+            }
+        }
+    }
+
     addMusic() {
         const music = this.sound.add('tommyInGoa', { loop: true, volume: 0.4 })
         this.sound.pauseOnBlur = false
@@ -212,6 +263,7 @@ export class GoaSpaceSurvival extends Scene {
             if (SPACE.isDown) {
                 if (now > this.state.player.nextFireTime) {
                     this.state.player.nextFireTime = now + PLAYER.FIRE_RATE
+                    this.fire()
                 }
             }
 
@@ -228,4 +280,18 @@ export class GoaSpaceSurvival extends Scene {
             // this.physics.world.wrap(this.player)
         }
     }
+}
+
+const killWhenOutOfBounds = (
+    object: Physics.Arcade.Sprite | Physics.Arcade.Image,
+) => {
+    // @ts-expect-error says readonly but works to overwrite.
+    object.body.onWorldBounds = true
+
+    object.body.world.on('worldbounds', (body: Physics.Arcade.Body) => {
+        if (body.gameObject === object) {
+            object.setActive(false)
+            object.setVisible(false)
+        }
+    })
 }
