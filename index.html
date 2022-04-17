@@ -4,8 +4,18 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Goa Space Survival</title>
+        <link rel="stylesheet" href="./src/global.css" />
     </head>
     <body class="bg-stone-900">
-        <script type="module" src="/src/index.ts"></script>
+        <main class="flex flex-col items-center pt-8 text-stone-50">
+            <h2 class="text-3xl font-bold">Goa Space Survival</h2>
+            <p class="font-mono pt-4">
+                Controls: UP or W to move forward, LEFT/RIGHT or A/D to rotate
+                &amp; Spacebar to shoot
+            </p>
+
+            <div id="game" class="flex justify-center pt-8 pb-16" />
+        </main>
+        <script type="module" src="./src/index.ts"></script>
     </body>
 </html>

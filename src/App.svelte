@@ -3,17 +3,28 @@
     import { Game, AUTO } from 'phaser'
 
     import { GoaSpaceSurvival } from './game'
-
-    const config = {
-        type: AUTO,
-        parent: 'game',
-        width: 800,
-        height: 600,
-        scene: GoaSpaceSurvival,
-    }
+    import { WORLD_SIZE } from './game/constants'
 
     onMount(() => {
-        const game = new Game(config)
+        if (import.meta.env.MODE === 'development' && window.game?.destroy) {
+            window.game.destroy(false)
+        }
+        window.game = new Game({
+            type: AUTO,
+            parent: 'game',
+            width: 800,
+            height: 600,
+            scene: GoaSpaceSurvival,
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    x: 0,
+                    y: 0,
+                    height: WORLD_SIZE,
+                    width: WORLD_SIZE,
+                },
+            },
+        })
     })
 </script>
 
