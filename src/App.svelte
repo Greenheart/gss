@@ -1,34 +1,28 @@
 <script lang="ts">
-    import Phaser from 'phaser'
-    import logoImg from './assets/logo.png'
+    import { onMount } from 'svelte'
+    import { Game, AUTO } from 'phaser'
 
-    class MyGame extends Phaser.Scene {
-        preload() {
-            this.load.image('logo', logoImg)
-        }
-
-        create() {
-            const logo = this.add.image(400, 150, 'logo')
-
-            this.tweens.add({
-                targets: logo,
-                y: 450,
-                duration: 2000,
-                ease: 'Power2',
-                yoyo: true,
-                loop: -1,
-            })
-        }
-    }
+    import { GoaSpaceSurvival } from './game'
 
     const config = {
-        type: Phaser.AUTO,
+        type: AUTO,
         parent: 'game',
         width: 800,
         height: 600,
-        scene: MyGame,
+        scene: GoaSpaceSurvival,
     }
 
-    const game = new Phaser.Game(config)
-    console.log(game)
+    onMount(() => {
+        const game = new Game(config)
+    })
 </script>
+
+<main class="flex flex-col items-center pt-8 text-stone-50">
+    <h2 class="text-3xl font-bold">Goa Space Survival</h2>
+    <p class="font-mono pt-4">
+        Controls: UP or W to move forward, LEFT/RIGHT or A/D to rotate &amp;
+        Spacebar to shoot
+    </p>
+
+    <div id="game" class="flex justify-center pt-8 pb-16" />
+</main>
