@@ -1,32 +1,9 @@
-import Phaser from 'phaser'
+import App from './App.svelte'
 
-import logoImg from './assets/logo.png'
+import './global.css'
 
-class MyGame extends Phaser.Scene {
-    preload() {
-        this.load.image('logo', logoImg)
-    }
+const app = new App({
+    target: document.body,
+})
 
-    create() {
-        const logo = this.add.image(400, 150, 'logo')
-
-        this.tweens.add({
-            targets: logo,
-            y: 450,
-            duration: 2000,
-            ease: 'Power2',
-            yoyo: true,
-            loop: -1,
-        })
-    }
-}
-
-const config = {
-    type: Phaser.AUTO,
-    parent: 'phaser-example',
-    width: 800,
-    height: 600,
-    scene: MyGame,
-}
-
-const game = new Phaser.Game(config)
+export default app
