@@ -1,0 +1,24 @@
+{
+    "name": "goa-space-survival",
+    "version": "2.0.0",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc && vite build",
+        "serve": "vite preview",
+        "format": "prettier --ignore-path .gitignore --write ."
+    },
+    "dependencies": {
+        "phaser": "^3.55.2"
+    },
+    "devDependencies": {
+        "prettier": "^2.6.2",
+        "typescript": "^4.6.3",
+        "vite": "^2.9.5"
+    },
+    "prettier": {
+        "semi": false,
+        "tabWidth": 4,
+        "trailingComma": "all",
+        "singleQuote": true
+    }
+}
