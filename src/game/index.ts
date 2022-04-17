@@ -90,10 +90,7 @@ export class GoaSpaceSurvival extends Scene {
         )
         player.scale = 1.5
         player.body.drag.set(PLAYER.DRAG)
-        player.body.setSize(
-            (player.body.width * 3) / 4,
-            (player.body.height * 3) / 4,
-        )
+        player.setCircle(player.body.width / 2.3, 3, 2)
         player.body.maxVelocity.set(PLAYER.MAX_SPEED)
         player.body.collideWorldBounds = true
         player.setDamping(true)
@@ -117,13 +114,16 @@ export class GoaSpaceSurvival extends Scene {
             collideWorldBounds: true,
             maxSize: ALIEN.MAX_SPAWNED,
             setScale: { x: 1.8, y: 1.8 },
-            setOrigin: { x: 0.5, y: 0.5 },
-            // TODO: improve hitbox for aliens, make them a bit smaller
             active: false,
             visible: false,
             frameQuantity: ALIEN.MAX_SPAWNED,
             bounceX: 1,
             bounceY: 1,
+        })
+
+        // @ts-expect-error TODO: fix this type to be correct
+        aliens.children.each((alien: Physics.Arcade.Sprite) => {
+            alien.body.setCircle(alien.body.width / 2.7, 4, 10)
         })
 
         this.anims.create({
@@ -140,10 +140,15 @@ export class GoaSpaceSurvival extends Scene {
         const bullets = this.physics.add.group({
             frameQuantity: PLAYER.MAX_BULLETS,
             collideWorldBounds: true,
-            setScale: { x: 0.5, y: 0.5 },
+            setScale: { x: 0.6, y: 0.6 },
             active: false,
             visible: false,
             key: 'bullet',
+        })
+
+        // @ts-expect-error TODO: fix this type to be correct
+        bullets.children.each((bullet: Physics.Arcade.Image) => {
+            bullet.body.setCircle(bullet.body.halfWidth, 0, 0)
         })
 
         return bullets
@@ -210,7 +215,8 @@ export class GoaSpaceSurvival extends Scene {
 
                 this.physics.velocityFromRotation(
                     this.player.rotation + PLAYER.ROTATION_FIX,
-                    PLAYER.BULLET_SPEED,
+                    // PLAYER.BULLET_SPEED,
+                    25,
                     bullet.body.velocity,
                 )
 
