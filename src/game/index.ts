@@ -1,4 +1,4 @@
-import { Scene, Math, GameObjects, Input, Physics } from 'phaser'
+import { Scene, Math, Input, Physics } from 'phaser'
 import type { Types } from 'phaser'
 
 import { ALIEN, PLAYER, WORLD_SIZE } from './constants'
@@ -117,7 +117,7 @@ export class GoaSpaceSurvival extends Scene {
             collideWorldBounds: true,
             maxSize: ALIEN.MAX_SPAWNED,
             setScale: { x: 1.8, y: 1.8 },
-            setOrigin: { x: 0.5, y: 0.8 },
+            setOrigin: { x: 0.5, y: 0.5 },
             // TODO: improve hitbox for aliens, make them a bit smaller
             active: false,
             visible: false,
@@ -138,14 +138,12 @@ export class GoaSpaceSurvival extends Scene {
 
     createBullets() {
         const bullets = this.physics.add.group({
-            key: 'bullets',
             frameQuantity: PLAYER.MAX_BULLETS,
             collideWorldBounds: true,
-            setScale: { x: 0.3, y: 0.3 },
-            maxSize: PLAYER.MAX_BULLETS,
-            frame: 0,
+            setScale: { x: 0.5, y: 0.5 },
             active: false,
             visible: false,
+            key: 'bullet',
         })
 
         return bullets
@@ -203,6 +201,7 @@ export class GoaSpaceSurvival extends Scene {
                 false,
                 this.player.x,
                 this.player.y,
+                'bullet',
             ) as Physics.Arcade.Image
 
             if (bullet) {
@@ -216,8 +215,6 @@ export class GoaSpaceSurvival extends Scene {
                 )
 
                 killWhenOutOfBounds(bullet)
-
-                this.bullets.add(bullet)
 
                 this.sound.play('shoot', { volume: 0.05 })
                 this.state.player.ammo--
