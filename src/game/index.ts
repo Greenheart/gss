@@ -111,15 +111,12 @@ export class GoaSpaceSurvival extends Scene {
             key: 'aliens',
             collideWorldBounds: true,
             maxSize: ALIEN.MAX_SPAWNED,
-            // setScale: { x: 2, y: 2 },
-            // setOrigin: { x: 0.5, y: 0.8 },
+            setScale: { x: 1.8, y: 1.8 },
+            setOrigin: { x: 0.5, y: 0.8 },
             active: false,
             visible: false,
+            frameQuantity: ALIEN.MAX_SPAWNED,
         })
-        // TODO: set body size of object
-        // alien.body.setSize(25, 20)
-
-        aliens.createMultiple({ key: 'alien', quantity: ALIEN.MAX_SPAWNED })
 
         this.anims.create({
             key: 'move',
@@ -131,7 +128,7 @@ export class GoaSpaceSurvival extends Scene {
         return aliens
     }
 
-    generateAlien() {
+    spawnAlien() {
         let alienX = Math.Between(0, WORLD_SIZE)
         let alienY = Math.Between(0, WORLD_SIZE)
 
@@ -148,13 +145,13 @@ export class GoaSpaceSurvival extends Scene {
             false,
             alienX,
             alienY,
-        ) as GameObjects.GameObject
+        ) as Physics.Arcade.Sprite
 
         if (alien) {
             alien.setActive(true)
             alien.setVisible(true)
-            // NOTE: Maybe add animation to every alien when activating it, like in phaser 2?
-            this.anims.play('move', alien)
+            alien.play('move')
+
             alien.body.velocity.x = Math.Between(
                 -ALIEN.MAX_SPEED,
                 ALIEN.MAX_SPEED,
@@ -222,9 +219,7 @@ export class GoaSpaceSurvival extends Scene {
                 if (now > this.state.nextAlienSpawn) {
                     if (this.aliens.countActive() < this.aliens.children.size) {
                         this.state.nextAlienSpawn = now + this.state.alienRate
-                        console.log(this.state.nextAlienSpawn)
-
-                        this.generateAlien()
+                        this.spawnAlien()
                     }
                 }
             }
