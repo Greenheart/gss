@@ -22,6 +22,7 @@ type GameState = {
 type UI = {
     startText: GameObjects.Text
     scoreText: GameObjects.Text
+    bulletsText: GameObjects.Text
 }
 
 export class GoaSpaceSurvival extends Scene {
@@ -29,6 +30,7 @@ export class GoaSpaceSurvival extends Scene {
     keys!: Record<KeyName, Input.Keyboard.Key>
     aliens!: Physics.Arcade.Group
     bullets!: Physics.Arcade.Group
+    ammoClips!: Physics.Arcade.Group
 
     ui!: UI
     state!: GameState
@@ -71,6 +73,7 @@ export class GoaSpaceSurvival extends Scene {
         this.player = this.createPlayer()
         this.aliens = this.createAliens()
         this.bullets = this.createBullets()
+        this.ammoClips = this.createAmmoClips()
 
         this.keys = this.input.keyboard.addKeys(
             'UP,LEFT,RIGHT,W,A,D,SPACE',
@@ -100,6 +103,10 @@ export class GoaSpaceSurvival extends Scene {
                 >),
             )) as ArcadePhysicsCallback)
 
+        this.physics.add.collider(this.player, this.ammoClips, ((a, b) =>
+            this.refillAmmo(
+                ...([a, b] as Parameters<GoaSpaceSurvival['refillAmmo']>),
+            )) as ArcadePhysicsCallback)
         this.createUI()
     }
 
@@ -136,9 +143,18 @@ export class GoaSpaceSurvival extends Scene {
         startText.visible = false
         startText.setScrollFactor(0)
 
+        const bulletsText = this.add.text(
+            this.cameras.main.x + 15,
+            this.cameras.main.y + 40,
+            `Bullets: ${this.state.player.ammo}`,
+            { color: 'red', fontSize: '2rem' },
+        )
+        bulletsText.setScrollFactor(0)
+
         this.ui = {
             startText,
             scoreText,
+            bulletsText,
         }
     }
 
@@ -169,6 +185,7 @@ export class GoaSpaceSurvival extends Scene {
 
     updateUI() {
         this.ui.scoreText.text = `Score: ${this.state.player.score}`
+        this.ui.bulletsText.text = `Bullets: ${this.state.player.ammo}`
     }
 
     createRestartPrompt() {
@@ -218,6 +235,23 @@ export class GoaSpaceSurvival extends Scene {
         })
 
         return bullets
+    }
+
+    createAmmoClips() {
+        const ammoClips = this.physics.add.group({
+            frameQuantity: PLAYER.MAX_BULLETS,
+            collideWorldBounds: true,
+            setScale: { x: 0.6, y: 0.6 },
+            key: 'bullet',
+        })
+
+        // @ts-expect-error TODO: fix this type to be correct
+        ammoClips.children.each((ammoClip: Physics.Arcade.Image) => {
+            ammoClip.body.setCircle(ammoClip.body.halfWidth, 0, 0)
+            ammoClip.disableBody(true, true)
+        })
+
+        return ammoClips
     }
 
     spawnAlien() {
@@ -286,6 +320,7 @@ export class GoaSpaceSurvival extends Scene {
 
                 this.sound.play('shoot', { volume: 0.05 })
                 this.state.player.ammo--
+                this.updateUI()
             }
         }
     }
@@ -314,13 +349,9 @@ export class GoaSpaceSurvival extends Scene {
         bullet: Physics.Arcade.Image,
         alien: Physics.Arcade.Sprite,
     ) {
-        // 30% chance that the alien dropAmmo
-        // const outcome = window.Math.random();
-        // if (outcome >= 0.7) {
-        //     // drop ammo on the alien's anchor position
-        //     dropAmmo(alien.body.x + alien.body.width / 2, alien.body.y + alien.body.height / 2);
-        // }
-        console.log(bullet, alien)
+        if (Math.FloatBetween(0, 1) <= ALIEN.AMMO_DROP_CHANCE) {
+            this.dropAmmo(alien.body.center.x, alien.body.center.y)
+        }
 
         bullet.disableBody(true, true)
         alien.disableBody(true, true)
@@ -330,7 +361,25 @@ export class GoaSpaceSurvival extends Scene {
         this.sound.play('alienDeath', { volume: 0.05 })
     }
 
-    dropAmmo() {}
+    dropAmmo(x: number, y: number) {
+        const ammoClip = this.ammoClips.getFirstDead(
+            false,
+        ) as Physics.Arcade.Image
+
+        if (ammoClip) {
+            ammoClip.enableBody(true, x, y, true, true)
+        }
+
+        this.time.delayedCall(ALIEN.AMMO_TIMEOUT, () => {
+            ammoClip.disableBody(true, true)
+        })
+    }
+
+    refillAmmo(player: Physics.Arcade.Sprite, ammoClip: Physics.Arcade.Image) {
+        ammoClip.disableBody(true, true)
+        this.state.player.ammo += ALIEN.AMMO_PER_CLIP
+        this.updateUI()
+    }
 
     restart() {
         this.ui.startText.visible = false
@@ -352,9 +401,14 @@ export class GoaSpaceSurvival extends Scene {
         this.bullets.children.each((bullet: Physics.Arcade.Sprite) => {
             bullet.disableBody(true, true)
         })
+
+        // @ts-expect-error TODO: fix this type to be correct
+        this.ammoClips.children.each((ammoClip: Physics.Arcade.Sprite) => {
+            ammoClip.disableBody(true, true)
+        })
     }
 
-    update(time: number, delta: number) {
+    update(time: number) {
         const { UP, LEFT, RIGHT, W, A, D, SPACE } = this.keys
 
         if (!this.state.player.alive && SPACE.isDown) {
@@ -363,10 +417,6 @@ export class GoaSpaceSurvival extends Scene {
         }
 
         if (!this.player.active) return
-        // if (this.player.visible) {
-        //     this.physics.overlap(this.player, this.aliens, this.die)
-        //     this.physics.overlap(this.player, this.ammoClips, this.refillAmmo)
-        // }
 
         if (UP.isDown || W.isDown) {
             this.physics.velocityFromRotation(
