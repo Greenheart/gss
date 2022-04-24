@@ -8,8 +8,9 @@ type KeyName = typeof KEYS[number]
 
 type GameState = {
     player: {
-        nextFireTime: number
+        cooldownTime: number
         ammo: number
+        kills: number
     }
     alienRate: number
     nextAlienSpawn: number
@@ -27,8 +28,9 @@ export class GoaSpaceSurvival extends Scene {
         super('goa-space-survival')
         this.state = {
             player: {
-                nextFireTime: 0,
+                cooldownTime: 0,
                 ammo: PLAYER.STARTING_AMMO,
+                kills: 0,
             },
             alienRate: ALIEN.STARTING_ALIEN_RATE,
             nextAlienSpawn: 0,
@@ -73,13 +75,30 @@ export class GoaSpaceSurvival extends Scene {
             true,
         ) as Record<KeyName, Input.Keyboard.Key>
 
+        this.anims.create({
+            key: 'explode',
+            frames: this.anims.generateFrameNumbers('explode', { start: 0 }),
+            frameRate: 16,
+            repeat: 1,
+        })
+
         // this.addMusic()
 
         // TODO: Tile the background to cover full screen
         // this.add.tileSprite(0, 0, WORLD_SIZE, WORLD_SIZE, 'background')
 
-        this.physics.add.collider(this.player, this.aliens)
+        this.physics.add.collider(this.player, this.aliens, ((a, b) =>
+            this.die(
+                ...([a, b] as Parameters<GoaSpaceSurvival['die']>),
+            )) as ArcadePhysicsCallback)
         this.physics.add.collider(this.aliens, this.aliens)
+
+        this.physics.add.collider(this.bullets, this.aliens, ((a, b) =>
+            this.bulletAlienCollision(
+                ...([a, b] as Parameters<
+                    GoaSpaceSurvival['bulletAlienCollision']
+                >),
+            )) as ArcadePhysicsCallback)
     }
 
     createPlayer() {
@@ -110,12 +129,10 @@ export class GoaSpaceSurvival extends Scene {
     createAliens() {
         const aliens = this.physics.add.group({
             classType: Physics.Arcade.Sprite,
-            key: 'aliens',
+            key: 'alien',
             collideWorldBounds: true,
             maxSize: ALIEN.MAX_SPAWNED,
             setScale: { x: 1.8, y: 1.8 },
-            active: false,
-            visible: false,
             frameQuantity: ALIEN.MAX_SPAWNED,
             bounceX: 1,
             bounceY: 1,
@@ -124,6 +141,7 @@ export class GoaSpaceSurvival extends Scene {
         // @ts-expect-error TODO: fix this type to be correct
         aliens.children.each((alien: Physics.Arcade.Sprite) => {
             alien.body.setCircle(alien.body.width / 2.7, 4, 10)
+            alien.disableBody(true, true)
         })
 
         this.anims.create({
@@ -136,19 +154,20 @@ export class GoaSpaceSurvival extends Scene {
         return aliens
     }
 
+    // TODO: Figure out what type of obects are spawning in the top left corner.
+
     createBullets() {
         const bullets = this.physics.add.group({
             frameQuantity: PLAYER.MAX_BULLETS,
             collideWorldBounds: true,
             setScale: { x: 0.6, y: 0.6 },
-            active: false,
-            visible: false,
             key: 'bullet',
         })
 
         // @ts-expect-error TODO: fix this type to be correct
         bullets.children.each((bullet: Physics.Arcade.Image) => {
             bullet.body.setCircle(bullet.body.halfWidth, 0, 0)
+            bullet.disableBody(true, true)
         })
 
         return bullets
@@ -167,15 +186,10 @@ export class GoaSpaceSurvival extends Scene {
         }
 
         const direction = Math.FloatBetween(0, 2 * window.Math.PI)
-        const alien = this.aliens.getFirstDead(
-            false,
-            alienX,
-            alienY,
-        ) as Physics.Arcade.Sprite
+        const alien = this.aliens.getFirstDead(false) as Physics.Arcade.Sprite
 
         if (alien) {
-            alien.setActive(true)
-            alien.setVisible(true)
+            alien.enableBody(true, alienX, alienY, true, true)
             alien.play('move')
 
             alien.body.velocity.x = Math.Between(
@@ -204,19 +218,20 @@ export class GoaSpaceSurvival extends Scene {
         if (this.state.player.ammo) {
             const bullet = this.bullets.getFirstDead(
                 false,
-                this.player.x,
-                this.player.y,
-                'bullet',
             ) as Physics.Arcade.Image
 
             if (bullet) {
-                bullet.setActive(true)
-                bullet.setVisible(true)
+                bullet.enableBody(
+                    true,
+                    this.player.x,
+                    this.player.y,
+                    true,
+                    true,
+                )
 
                 this.physics.velocityFromRotation(
                     this.player.rotation + PLAYER.ROTATION_FIX,
-                    // PLAYER.BULLET_SPEED,
-                    25,
+                    PLAYER.BULLET_SPEED,
                     bullet.body.velocity,
                 )
 
@@ -234,53 +249,80 @@ export class GoaSpaceSurvival extends Scene {
         music.play()
     }
 
-    update() {
+    die(player: Physics.Arcade.Sprite, alien: Physics.Arcade.Sprite) {
+        this.player.disableBody(true, true)
+        alien.disableBody(true, true)
+        // this.player.visible = false
+        // alien.visible = false
+        this.sound.play('playerExplosion', { volume: 0.05 })
+
+        this.anims.play('explode', this.player)
+
+        this.player.on('animationcomplete-explode', () => {
+            console.log('DONE')
+        })
+    }
+
+    bulletAlienCollision(
+        bullet: Physics.Arcade.Image,
+        alien: Physics.Arcade.Sprite,
+    ) {
+        // 30% chance that the alien dropAmmo
+        // const outcome = window.Math.random();
+        // if (outcome >= 0.7) {
+        //     // drop ammo on the alien's anchor position
+        //     dropAmmo(alien.body.x + alien.body.width / 2, alien.body.y + alien.body.height / 2);
+        // }
+        console.log(bullet, alien)
+
+        bullet.disableBody(true, true)
+        alien.disableBody(true, true)
+
+        this.state.player.kills++
+        this.sound.play('alienDeath', { volume: 0.05 })
+    }
+
+    dropAmmo() {}
+
+    update(time: number, delta: number) {
+        if (!this.player.active) return
         // if (this.player.visible) {
         //     this.physics.overlap(this.player, this.aliens, this.die)
         //     this.physics.overlap(this.player, this.ammoClips, this.refillAmmo)
         // }
 
-        // this.physics.overlap(this.bullets, this.aliens, this.bulletAlienCollision)
+        const { UP, LEFT, RIGHT, W, A, D, SPACE } = this.keys
+        if (UP.isDown || W.isDown) {
+            this.physics.velocityFromRotation(
+                this.player.rotation + PLAYER.ROTATION_FIX,
+                200,
+                this.player.body.velocity,
+            )
+        } else {
+            this.player.setAcceleration(0)
+        }
 
-        if (this.player.active) {
-            const now = this.game.getTime()
-            const { UP, LEFT, RIGHT, W, A, D, SPACE } = this.keys
-            if (UP.isDown || W.isDown) {
-                this.physics.velocityFromRotation(
-                    this.player.rotation + PLAYER.ROTATION_FIX,
-                    200,
-                    this.player.body.acceleration,
-                )
-            } else {
-                this.player.setAcceleration(0)
+        if (LEFT.isDown || A.isDown) {
+            this.player.setAngularVelocity(-PLAYER.MAX_ANGULAR_VELOCITY)
+        } else if (RIGHT.isDown || D.isDown) {
+            this.player.setAngularVelocity(PLAYER.MAX_ANGULAR_VELOCITY)
+        } else {
+            this.player.setAngularVelocity(0)
+        }
+
+        if (SPACE.isDown) {
+            if (time > this.state.player.cooldownTime) {
+                this.state.player.cooldownTime = time + PLAYER.COOLDOWN
+                this.fire()
             }
+        }
 
-            if (LEFT.isDown || A.isDown) {
-                this.player.setAngularVelocity(-PLAYER.MAX_ANGULAR_VELOCITY)
-            } else if (RIGHT.isDown || D.isDown) {
-                this.player.setAngularVelocity(PLAYER.MAX_ANGULAR_VELOCITY)
-            } else {
-                this.player.setAngularVelocity(0)
+        if (time > this.state.nextAlienSpawn) {
+            if (this.aliens.countActive() < this.aliens.children.size) {
+                // IDEA: Make aliens spawn faster the longer the game progress
+                this.state.nextAlienSpawn = time + this.state.alienRate
+                this.spawnAlien()
             }
-
-            if (SPACE.isDown) {
-                if (now > this.state.player.nextFireTime) {
-                    this.state.player.nextFireTime = now + PLAYER.FIRE_RATE
-                    this.fire()
-                }
-            }
-
-            if (this.player.active) {
-                if (now > this.state.nextAlienSpawn) {
-                    if (this.aliens.countActive() < this.aliens.children.size) {
-                        this.state.nextAlienSpawn = now + this.state.alienRate
-                        this.spawnAlien()
-                    }
-                }
-            }
-
-            // IDEA: Maybe get player world bounds wrapping to work.
-            // this.physics.world.wrap(this.player)
         }
     }
 }
@@ -293,8 +335,7 @@ const killWhenOutOfBounds = (
 
     object.body.world.on('worldbounds', (body: Physics.Arcade.Body) => {
         if (body.gameObject === object) {
-            object.setActive(false)
-            object.setVisible(false)
+            object.disableBody(true, true)
         }
     })
 }

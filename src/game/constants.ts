@@ -6,14 +6,14 @@
 export const WORLD_SIZE = 1000
 
 export const PLAYER = {
-    DRAG: 0.99,
-    MAX_SPEED: 180,
+    DRAG: 0.59,
+    MAX_SPEED: 170,
     STARTING_AMMO: 50,
-    MAX_ANGULAR_VELOCITY: 280,
+    MAX_ANGULAR_VELOCITY: 200,
     /**
      * Weapon cooldown time (ms)
      */
-    FIRE_RATE: 300,
+    COOLDOWN: 300,
     /**
      * Prevents aliens from spawning within this radius from the player
      */
