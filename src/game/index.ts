@@ -1,4 +1,4 @@
-import { Scene, Math, Input, Physics } from 'phaser'
+import { Scene, Math, Input, Physics, GameObjects } from 'phaser'
 import type { Types } from 'phaser'
 
 import { ALIEN, PLAYER, WORLD_SIZE } from './constants'
@@ -11,6 +11,7 @@ type GameState = {
         cooldownTime: number
         ammo: number
         kills: number
+        score: number
     }
     alienRate: number
     nextAlienSpawn: number
@@ -21,6 +22,7 @@ export class GoaSpaceSurvival extends Scene {
     keys!: Record<KeyName, Input.Keyboard.Key>
     aliens!: Physics.Arcade.Group
     bullets!: Physics.Arcade.Group
+    scoreText!: GameObjects.Text
 
     state: GameState
 
@@ -31,6 +33,7 @@ export class GoaSpaceSurvival extends Scene {
                 cooldownTime: 0,
                 ammo: PLAYER.STARTING_AMMO,
                 kills: 0,
+                score: 0,
             },
             alienRate: ALIEN.STARTING_ALIEN_RATE,
             nextAlienSpawn: 0,
@@ -97,6 +100,13 @@ export class GoaSpaceSurvival extends Scene {
                     GoaSpaceSurvival['bulletAlienCollision']
                 >),
             )) as ArcadePhysicsCallback)
+
+        this.scoreText = this.add.text(
+            this.cameras.main.x + 15,
+            this.cameras.main.y + 15,
+            'Score: 0',
+        )
+        this.scoreText.setScrollFactor(0)
     }
 
     createPlayer() {
@@ -122,6 +132,10 @@ export class GoaSpaceSurvival extends Scene {
 
         player.play('fly')
         return player
+    }
+
+    updatePlayerScore() {
+        this.scoreText.text = `Score: ${this.state.player.score}`
     }
 
     createAliens() {
@@ -273,8 +287,9 @@ export class GoaSpaceSurvival extends Scene {
 
         bullet.disableBody(true, true)
         alien.disableBody(true, true)
-
+        this.state.player.score++
         this.state.player.kills++
+        this.updatePlayerScore()
         this.sound.play('alienDeath', { volume: 0.05 })
     }
 
