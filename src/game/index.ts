@@ -63,7 +63,9 @@ export class GoaSpaceSurvival extends Scene {
     }
 
     create() {
-        this.add.image(400, 300, 'background')
+        this.add
+            .tileSprite(0, 0, WORLD_SIZE, WORLD_SIZE, 'background')
+            .setOrigin(0, 0)
 
         this.player = this.createPlayer()
         this.aliens = this.createAliens()
@@ -83,9 +85,6 @@ export class GoaSpaceSurvival extends Scene {
         })
 
         // this.addMusic()
-
-        // TODO: Tile the background to cover full screen
-        // this.add.tileSprite(0, 0, WORLD_SIZE, WORLD_SIZE, 'background')
 
         this.physics.add.collider(this.player, this.aliens, ((a, b) =>
             this.die(
