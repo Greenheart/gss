@@ -129,7 +129,7 @@ export class GoaSpaceSurvival extends Scene {
         const startText = this.add
             .text(
                 this.cameras.main.centerX,
-                this.cameras.main.centerY,
+                this.cameras.main.centerY - 80,
                 'Press SPACE to start',
             )
             .setOrigin(0.5)
