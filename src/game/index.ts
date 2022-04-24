@@ -1,4 +1,4 @@
-import { Scene, Math, Input, Physics, GameObjects, Display } from 'phaser'
+import { Scene, Math, Input, Physics, GameObjects } from 'phaser'
 import type { Types } from 'phaser'
 
 import { ALIEN, HIGHSCORES_DB, PLAYER, WORLD_SIZE } from './constants'
@@ -23,6 +23,11 @@ type UI = {
     startText: GameObjects.Text
     scoreText: GameObjects.Text
     bulletsText: GameObjects.Text
+}
+
+type HighscoreEntry = {
+    score: string
+    date: string
 }
 
 export class GoaSpaceSurvival extends Scene {
@@ -413,12 +418,15 @@ export class GoaSpaceSurvival extends Scene {
 
     loadHighscores() {
         const raw = localStorage.getItem(HIGHSCORES_DB) || '[]'
-        return JSON.parse(raw)
+        return JSON.parse(raw) as HighscoreEntry[]
     }
 
     saveHighscore(score: number) {
         const scores = this.loadHighscores()
-        scores.push({ score, date: new Date().toLocaleString('sv-SE') })
+        scores.push({
+            score: score.toString(),
+            date: new Date().toLocaleString('sv-SE'),
+        })
 
         if (score > 0) {
             localStorage.setItem(HIGHSCORES_DB, JSON.stringify(scores))
@@ -430,21 +438,13 @@ export class GoaSpaceSurvival extends Scene {
         const hs = document.querySelector('#highscores')
         if (!hs) return
 
-        type HighscoreEntry = {
-            score: string
-            date: string
-        }
-
         const scores = this.loadHighscores()
 
         hs?.parentElement?.classList.toggle('hidden', Boolean(!scores.length))
         hs.innerHTML = scores
-            .sort(
-                (a: HighscoreEntry, b: HighscoreEntry) =>
-                    Number(b.score) - Number(a.score),
-            )
+            .sort((a, b) => Number(b.score) - Number(a.score))
             .map(
-                ({ score, date }: { score: string; date: string }) =>
+                ({ score, date }) =>
                     `<li><span class="text-red-500">${score}</span> - ${date}</li>`,
             )
             .slice(0, 5)
