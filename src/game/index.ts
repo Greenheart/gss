@@ -222,7 +222,7 @@ export class GoaSpaceSurvival extends Scene {
 
     createBullets() {
         const bullets = this.physics.add.group({
-            frameQuantity: PLAYER.MAX_BULLETS,
+            frameQuantity: PLAYER.MAX_SPAWNED_BULLETS,
             collideWorldBounds: true,
             setScale: { x: 0.6, y: 0.6 },
             key: 'bullet',
@@ -239,7 +239,7 @@ export class GoaSpaceSurvival extends Scene {
 
     createAmmoClips() {
         const ammoClips = this.physics.add.group({
-            frameQuantity: PLAYER.MAX_BULLETS,
+            frameQuantity: PLAYER.MAX_SPAWNED_BULLETS,
             collideWorldBounds: true,
             setScale: { x: 0.6, y: 0.6 },
             key: 'bullet',

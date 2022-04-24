@@ -23,12 +23,12 @@ export const PLAYER = {
      */
     ROTATION_FIX: Math.PI / 2,
     BULLET_SPEED: 500,
-    MAX_BULLETS: 30,
+    MAX_SPAWNED_BULLETS: 40,
     WEAPON_ACTIVATION_TIME: 500,
 }
 
 export const ALIEN = {
-    MAX_SPAWNED: 10,
+    MAX_SPAWNED: 30,
     MAX_SPEED: 125,
     /**
      * Controls how often aliens spawn.
