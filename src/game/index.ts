@@ -14,6 +14,7 @@ type GameState = {
         score: number
         alive: boolean
     }
+    sessionStartTime: number
     alienRate: number
     nextAlienSpawn: number
 }
@@ -111,6 +112,7 @@ export class GoaSpaceSurvival extends Scene {
                 score: 0,
                 alive: true,
             },
+            sessionStartTime: this.game.getTime(),
             alienRate: ALIEN.STARTING_ALIEN_RATE,
             nextAlienSpawn: 0,
         }
@@ -200,8 +202,6 @@ export class GoaSpaceSurvival extends Scene {
 
         return aliens
     }
-
-    // TODO: Figure out what type of obects are spawning in the top left corner.
 
     createBullets() {
         const bullets = this.physics.add.group({
@@ -342,7 +342,6 @@ export class GoaSpaceSurvival extends Scene {
             true,
             true,
         )
-        this.state.player.score = 0
     }
 
     update(time: number, delta: number) {
@@ -377,7 +376,10 @@ export class GoaSpaceSurvival extends Scene {
             this.player.setAngularVelocity(0)
         }
 
-        if (SPACE.isDown) {
+        if (
+            SPACE.isDown &&
+            time > this.state.sessionStartTime + PLAYER.WEAPON_ACTIVATION_TIME
+        ) {
             if (time > this.state.player.cooldownTime) {
                 this.state.player.cooldownTime = time + PLAYER.COOLDOWN
                 this.fire()

@@ -24,6 +24,7 @@ export const PLAYER = {
     ROTATION_FIX: Math.PI / 2,
     BULLET_SPEED: 500,
     MAX_BULLETS: 30,
+    WEAPON_ACTIVATION_TIME: 500,
 }
 
 export const ALIEN = {
