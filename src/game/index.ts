@@ -1,4 +1,4 @@
-import { Scene, Math, Input, Physics, GameObjects } from 'phaser'
+import { Scene, Math, Input, Physics, GameObjects, Display } from 'phaser'
 import type { Types } from 'phaser'
 
 import { ALIEN, PLAYER, WORLD_SIZE } from './constants'
@@ -136,7 +136,7 @@ export class GoaSpaceSurvival extends Scene {
         const startText = this.add
             .text(
                 this.cameras.main.centerX,
-                this.cameras.main.centerY - 80,
+                this.cameras.main.centerY - 60,
                 'Press SPACE to start',
             )
             .setOrigin(0.5)
@@ -144,10 +144,9 @@ export class GoaSpaceSurvival extends Scene {
         startText.setScrollFactor(0)
 
         const bulletsText = this.add.text(
-            this.cameras.main.x + 15,
-            this.cameras.main.y + 40,
+            this.cameras.main.width - 120,
+            this.cameras.main.y + 15,
             `Bullets: ${this.state.player.ammo}`,
-            { color: 'red', fontSize: '2rem' },
         )
         bulletsText.setScrollFactor(0)
 
@@ -178,6 +177,7 @@ export class GoaSpaceSurvival extends Scene {
             repeat: -1,
         })
         this.cameras.main.startFollow(player)
+        this.cameras.main.setBounds(0, 0, WORLD_SIZE, WORLD_SIZE)
 
         player.play('fly')
         return player
