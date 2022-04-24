@@ -42,3 +42,5 @@ export const ALIEN = {
     AMMO_TIMEOUT: 10_000,
     AMMO_PER_CLIP: 5,
 }
+
+export const HIGHSCORES_DB = 'gss_highscores'

@@ -1,7 +1,7 @@
 import { Scene, Math, Input, Physics, GameObjects, Display } from 'phaser'
 import type { Types } from 'phaser'
 
-import { ALIEN, PLAYER, WORLD_SIZE } from './constants'
+import { ALIEN, HIGHSCORES_DB, PLAYER, WORLD_SIZE } from './constants'
 
 const KEYS = ['UP', 'LEFT', 'RIGHT', 'W', 'A', 'D', 'SPACE'] as const
 type KeyName = typeof KEYS[number]
@@ -155,6 +155,8 @@ export class GoaSpaceSurvival extends Scene {
             scoreText,
             bulletsText,
         }
+
+        this.showHighscores()
     }
 
     createPlayer() {
@@ -343,6 +345,7 @@ export class GoaSpaceSurvival extends Scene {
         })
         this.createRestartPrompt()
         this.state.player.alive = false
+        this.saveHighscore(this.state.player.score)
     }
 
     bulletAlienCollision(
@@ -406,6 +409,46 @@ export class GoaSpaceSurvival extends Scene {
         this.ammoClips.children.each((ammoClip: Physics.Arcade.Sprite) => {
             ammoClip.disableBody(true, true)
         })
+    }
+
+    loadHighscores() {
+        const raw = localStorage.getItem(HIGHSCORES_DB) || '[]'
+        return JSON.parse(raw)
+    }
+
+    saveHighscore(score: number) {
+        const scores = this.loadHighscores()
+        scores.push({ score, date: new Date().toLocaleString('sv-SE') })
+
+        if (score > 0) {
+            localStorage.setItem(HIGHSCORES_DB, JSON.stringify(scores))
+            this.showHighscores()
+        }
+    }
+
+    showHighscores() {
+        const hs = document.querySelector('#highscores')
+        if (!hs) return
+
+        type HighscoreEntry = {
+            score: string
+            date: string
+        }
+
+        const scores = this.loadHighscores()
+
+        hs?.parentElement?.classList.toggle('hidden', Boolean(!scores.length))
+        hs.innerHTML = scores
+            .sort(
+                (a: HighscoreEntry, b: HighscoreEntry) =>
+                    Number(b.score) - Number(a.score),
+            )
+            .map(
+                ({ score, date }: { score: string; date: string }) =>
+                    `<li><span class="text-red-500">${score}</span> - ${date}</li>`,
+            )
+            .slice(0, 5)
+            .join('')
     }
 
     update(time: number) {

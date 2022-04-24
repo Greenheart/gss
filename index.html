@@ -6,16 +6,20 @@
         <title>Goa Space Survival</title>
         <link rel="stylesheet" href="./src/global.css" />
     </head>
-    <body class="bg-stone-900">
-        <main class="flex flex-col items-center pt-8 text-stone-50">
+    <body class="bg-stone-900 text-stone-50">
+        <main class="flex flex-col items-center pt-8">
             <h2 class="text-3xl font-bold">Goa Space Survival</h2>
             <p class="font-mono pt-4">
                 Controls: UP or W to move forward, LEFT/RIGHT or A/D to rotate
                 &amp; SPACE to shoot
             </p>
 
-            <div id="game" class="flex justify-center pt-8 pb-16" />
+            <div id="game" class="flex justify-center py-8" />
         </main>
+        <div class="max-w-screen-md mx-auto text-center hidden">
+            <h3 class="text-2xl font-bold pb-4">Top 5 highscores</h3>
+            <ol class="w-full space-y-2" id="highscores"></ol>
+        </div>
         <script type="module" src="./src/index.ts"></script>
     </body>
 </html>
