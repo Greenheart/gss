@@ -342,6 +342,16 @@ export class GoaSpaceSurvival extends Scene {
             true,
             true,
         )
+
+        // @ts-expect-error TODO: fix this type to be correct
+        this.aliens.children.each((alien: Physics.Arcade.Sprite) => {
+            alien.disableBody(true, true)
+        })
+
+        // @ts-expect-error TODO: fix this type to be correct
+        this.bullets.children.each((bullet: Physics.Arcade.Sprite) => {
+            bullet.disableBody(true, true)
+        })
     }
 
     update(time: number, delta: number) {
