@@ -88,7 +88,7 @@ export class GoaSpaceSurvival extends Scene {
             repeat: 0,
         })
 
-        // this.addMusic()
+        this.addMusic()
 
         this.physics.add.collider(this.player, this.aliens, ((a, b) =>
             this.die(
@@ -318,7 +318,7 @@ export class GoaSpaceSurvival extends Scene {
 
                 killWhenOutOfBounds(bullet)
 
-                this.sound.play('shoot', { volume: 0.05 })
+                this.sound.play('shoot', { volume: 0.02 })
                 this.state.player.ammo--
                 this.updateUI()
             }

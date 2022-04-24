@@ -40,5 +40,5 @@ export const ALIEN = {
     MIN_ALIEN_RATE: 800,
     AMMO_DROP_CHANCE: 0.3,
     AMMO_TIMEOUT: 10_000,
-    AMMO_PER_CLIP: 10,
+    AMMO_PER_CLIP: 5,
 }
