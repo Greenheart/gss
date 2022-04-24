@@ -52,11 +52,10 @@ export class GoaSpaceSurvival extends Scene {
         this.load.spritesheet('explode', 'assets/sprites/explode.png', {
             frameWidth: 128,
             frameHeight: 128,
-            // TODO: Use 16 frames per second or 16 frames total
         })
         this.load.audio('shoot', 'assets/sounds/shotgun.wav')
         this.load.audio('alienDeath', 'assets/sounds/alien_death1.wav')
-        this.load.audio('playerExplosion', 'assets/sounds/explosion.mp3')
+        this.load.audio('explosion', 'assets/sounds/explosion.mp3')
         this.load.audio('pickUpItem', 'assets/sounds/key.wav')
 
         this.load.audio('tommyInGoa', 'assets/music/tommy_in_goa.mp3')
@@ -80,8 +79,8 @@ export class GoaSpaceSurvival extends Scene {
         this.anims.create({
             key: 'explode',
             frames: this.anims.generateFrameNumbers('explode', { start: 0 }),
-            frameRate: 16,
-            repeat: 1,
+            frameRate: 24,
+            repeat: 0,
         })
 
         // this.addMusic()
@@ -249,16 +248,14 @@ export class GoaSpaceSurvival extends Scene {
     }
 
     die(player: Physics.Arcade.Sprite, alien: Physics.Arcade.Sprite) {
-        this.player.disableBody(true, true)
+        const boom = this.add.sprite(player.x, player.y, 'explode', 16)
         alien.disableBody(true, true)
-        // this.player.visible = false
-        // alien.visible = false
-        this.sound.play('playerExplosion', { volume: 0.05 })
+        this.sound.play('explosion', { volume: 0.05 })
+        boom.play('explode')
+        player.disableBody(true, true)
 
-        this.anims.play('explode', this.player)
-
-        this.player.on('animationcomplete-explode', () => {
-            console.log('DONE')
+        boom.on('animationcomplete-explode', () => {
+            boom.destroy()
         })
     }
 
