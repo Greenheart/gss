@@ -17,7 +17,7 @@ export const PLAYER = {
     /**
      * Prevents aliens from spawning within this radius from the player
      */
-    SAFE_RADIUS: 80,
+    SAFE_RADIUS: 120,
     /**
      * Ensure rotation matches the player sprite
      */

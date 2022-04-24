@@ -398,8 +398,10 @@ export class GoaSpaceSurvival extends Scene {
 
         if (time > this.state.nextAlienSpawn) {
             if (this.aliens.countActive() < this.aliens.children.size) {
-                // IDEA: Make aliens spawn faster the longer the game progress
                 this.state.nextAlienSpawn = time + this.state.alienRate
+                if (this.state.alienRate > ALIEN.MIN_ALIEN_RATE) {
+                    this.state.alienRate -= 100
+                }
                 this.spawnAlien()
             }
         }
