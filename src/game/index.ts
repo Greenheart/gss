@@ -144,9 +144,9 @@ export class GoaSpaceSurvival extends Scene {
         startText.setScrollFactor(0)
 
         const bulletsText = this.add.text(
-            this.cameras.main.width - 120,
+            this.cameras.main.width - 90,
             this.cameras.main.y + 15,
-            `Bullets: ${this.state.player.ammo}`,
+            `Ammo: ${this.state.player.ammo}`,
         )
         bulletsText.setScrollFactor(0)
 
@@ -185,7 +185,7 @@ export class GoaSpaceSurvival extends Scene {
 
     updateUI() {
         this.ui.scoreText.text = `Score: ${this.state.player.score}`
-        this.ui.bulletsText.text = `Bullets: ${this.state.player.ammo}`
+        this.ui.bulletsText.text = `Ammo: ${this.state.player.ammo}`
     }
 
     createRestartPrompt() {
