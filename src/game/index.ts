@@ -12,9 +12,15 @@ type GameState = {
         ammo: number
         kills: number
         score: number
+        alive: boolean
     }
     alienRate: number
     nextAlienSpawn: number
+}
+
+type UI = {
+    startText: GameObjects.Text
+    scoreText: GameObjects.Text
 }
 
 export class GoaSpaceSurvival extends Scene {
@@ -22,22 +28,12 @@ export class GoaSpaceSurvival extends Scene {
     keys!: Record<KeyName, Input.Keyboard.Key>
     aliens!: Physics.Arcade.Group
     bullets!: Physics.Arcade.Group
-    scoreText!: GameObjects.Text
 
-    state: GameState
+    ui!: UI
+    state!: GameState
 
     constructor() {
         super('goa-space-survival')
-        this.state = {
-            player: {
-                cooldownTime: 0,
-                ammo: PLAYER.STARTING_AMMO,
-                kills: 0,
-                score: 0,
-            },
-            alienRate: ALIEN.STARTING_ALIEN_RATE,
-            nextAlienSpawn: 0,
-        }
     }
 
     preload() {
@@ -67,7 +63,9 @@ export class GoaSpaceSurvival extends Scene {
     create() {
         this.add
             .tileSprite(0, 0, WORLD_SIZE, WORLD_SIZE, 'background')
-            .setOrigin(0, 0)
+            .setOrigin(0)
+
+        this.startNewGame()
 
         this.player = this.createPlayer()
         this.aliens = this.createAliens()
@@ -101,12 +99,45 @@ export class GoaSpaceSurvival extends Scene {
                 >),
             )) as ArcadePhysicsCallback)
 
-        this.scoreText = this.add.text(
+        this.createUI()
+    }
+
+    startNewGame() {
+        this.state = {
+            player: {
+                cooldownTime: 0,
+                ammo: PLAYER.STARTING_AMMO,
+                kills: 0,
+                score: 0,
+                alive: true,
+            },
+            alienRate: ALIEN.STARTING_ALIEN_RATE,
+            nextAlienSpawn: 0,
+        }
+    }
+
+    createUI() {
+        const scoreText = this.add.text(
             this.cameras.main.x + 15,
             this.cameras.main.y + 15,
             'Score: 0',
         )
-        this.scoreText.setScrollFactor(0)
+        scoreText.setScrollFactor(0)
+
+        const startText = this.add
+            .text(
+                this.cameras.main.centerX,
+                this.cameras.main.centerY,
+                'Press SPACE to start',
+            )
+            .setOrigin(0.5)
+        startText.visible = false
+        startText.setScrollFactor(0)
+
+        this.ui = {
+            startText,
+            scoreText,
+        }
     }
 
     createPlayer() {
@@ -134,8 +165,12 @@ export class GoaSpaceSurvival extends Scene {
         return player
     }
 
-    updatePlayerScore() {
-        this.scoreText.text = `Score: ${this.state.player.score}`
+    updateUI() {
+        this.ui.scoreText.text = `Score: ${this.state.player.score}`
+    }
+
+    createRestartPrompt() {
+        this.ui.startText.visible = true
     }
 
     createAliens() {
@@ -271,6 +306,8 @@ export class GoaSpaceSurvival extends Scene {
         boom.on('animationcomplete-explode', () => {
             boom.destroy()
         })
+        this.createRestartPrompt()
+        this.state.player.alive = false
     }
 
     bulletAlienCollision(
@@ -289,20 +326,39 @@ export class GoaSpaceSurvival extends Scene {
         alien.disableBody(true, true)
         this.state.player.score++
         this.state.player.kills++
-        this.updatePlayerScore()
+        this.updateUI()
         this.sound.play('alienDeath', { volume: 0.05 })
     }
 
     dropAmmo() {}
 
+    restart() {
+        this.ui.startText.visible = false
+        this.startNewGame()
+        this.player.enableBody(
+            true,
+            this.cameras.main.centerX,
+            this.cameras.main.centerY,
+            true,
+            true,
+        )
+        this.state.player.score = 0
+    }
+
     update(time: number, delta: number) {
+        const { UP, LEFT, RIGHT, W, A, D, SPACE } = this.keys
+
+        if (!this.state.player.alive && SPACE.isDown) {
+            this.restart()
+            this.updateUI()
+        }
+
         if (!this.player.active) return
         // if (this.player.visible) {
         //     this.physics.overlap(this.player, this.aliens, this.die)
         //     this.physics.overlap(this.player, this.ammoClips, this.refillAmmo)
         // }
 
-        const { UP, LEFT, RIGHT, W, A, D, SPACE } = this.keys
         if (UP.isDown || W.isDown) {
             this.physics.velocityFromRotation(
                 this.player.rotation + PLAYER.ROTATION_FIX,
