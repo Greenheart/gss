@@ -49,6 +49,7 @@ export class GoaSpaceSurvival extends Scene {
     preload() {
         this.load.image('background', 'assets/images/deep-space.jpg')
         this.load.image('bullet', 'assets/images/purple_ball.png')
+        this.load.image('ammoClip', 'assets/images/purple_ball.png')
 
         this.load.spritesheet('ship', 'assets/sprites/humstar.png', {
             frameWidth: 32,
@@ -250,9 +251,8 @@ export class GoaSpaceSurvival extends Scene {
     createAmmoClips() {
         const ammoClips = this.physics.add.group({
             frameQuantity: PLAYER.MAX_SPAWNED_BULLETS,
-            collideWorldBounds: true,
             setScale: { x: 0.6, y: 0.6 },
-            key: 'bullet',
+            key: 'ammoClip',
         })
 
         // @ts-expect-error TODO: fix this type to be correct
