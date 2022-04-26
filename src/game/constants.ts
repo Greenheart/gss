@@ -22,7 +22,7 @@ export const PLAYER = {
      * Ensure rotation matches the player sprite
      */
     ROTATION_FIX: Math.PI / 2,
-    BULLET_SPEED: 500,
+    BULLET_SPEED: 600,
     MAX_SPAWNED_BULLETS: 40,
     WEAPON_ACTIVATION_TIME: 500,
 }
