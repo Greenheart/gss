@@ -13,6 +13,7 @@ type GameState = {
         kills: number
         score: number
         alive: boolean
+        bulletsFired: number
     }
     sessionStartTime: number
     alienRate: number
@@ -28,6 +29,7 @@ type UI = {
 type HighscoreEntry = {
     score: string
     date: string
+    accuracy: number
 }
 
 export class GoaSpaceSurvival extends Scene {
@@ -123,6 +125,7 @@ export class GoaSpaceSurvival extends Scene {
                 kills: 0,
                 score: 0,
                 alive: true,
+                bulletsFired: 0,
             },
             sessionStartTime: this.game.getTime(),
             alienRate: ALIEN.STARTING_ALIEN_RATE,
@@ -327,6 +330,7 @@ export class GoaSpaceSurvival extends Scene {
 
                 this.sound.play('shoot', { volume: 0.02 })
                 this.state.player.ammo--
+                this.state.player.bulletsFired++
                 this.updateUI()
             }
         }
@@ -426,6 +430,7 @@ export class GoaSpaceSurvival extends Scene {
         scores.push({
             score: score.toString(),
             date: new Date().toLocaleString('sv-SE'),
+            accuracy: this.state.player.kills / this.state.player.bulletsFired,
         })
 
         if (score > 0) {
@@ -444,8 +449,10 @@ export class GoaSpaceSurvival extends Scene {
         hs.innerHTML = scores
             .sort((a, b) => Number(b.score) - Number(a.score))
             .map(
-                ({ score, date }) =>
-                    `<li><span class="text-red-500">${score}</span> - ${date}</li>`,
+                ({ score, date, accuracy }) =>
+                    `<li><span class="text-red-500">${score}</span> - ${date} - <span class="text-red-500">${window.Math.round(
+                        accuracy * 100,
+                    )}% accuracy</span></li>`,
             )
             .slice(0, 5)
             .join('')
