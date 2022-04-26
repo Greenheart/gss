@@ -110,7 +110,7 @@ export class GoaSpaceSurvival extends Scene {
                 >),
             )) as ArcadePhysicsCallback)
 
-        this.physics.add.collider(this.player, this.ammoClips, ((a, b) =>
+        this.physics.add.overlap(this.player, this.ammoClips, ((a, b) =>
             this.refillAmmo(
                 ...([a, b] as Parameters<GoaSpaceSurvival['refillAmmo']>),
             )) as ArcadePhysicsCallback)

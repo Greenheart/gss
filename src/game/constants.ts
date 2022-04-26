@@ -1,8 +1,3 @@
-// const alienRate = 3000 // cooldown for spawning aliens
-// const nextAlienTime = 0 // time left until next alien can be spawned
-// const aliensKilled = 0
-// const playerAmmo = 50
-
 export const WORLD_SIZE = 1000
 
 export const PLAYER = {
